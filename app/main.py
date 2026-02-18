@@ -109,7 +109,8 @@ if archivo:
                 try:
                     resumen = utils.generar_resumen_estadistico(df)
                     response = client.chat.completions.create(
-                        model="llama3-8b-8192",
+                        # HEMOS ACTUALIZADO EL MODELO AQUÍ:
+                        model="llama-3.3-70b-versatile", 
                         messages=[
                             {"role": "system", "content": prompts.SYSTEM_PROMPT},
                             {"role": "user", "content": prompts.generar_prompt_analisis(resumen)}
