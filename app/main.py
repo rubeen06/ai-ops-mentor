@@ -9,21 +9,23 @@ from groq import Groq
 import prompts
 import utils
 
-# --- 1. CONFIGURACIÓN DE LA API KEY (EL CEREBRO) ---
+# 1. Intentar cargar desde el archivo .env (solo para local)
 load_dotenv()
 
-# Intentamos leer la clave de tres lugares distintos
-api_key = os.getenv("GROQ_API_KEY") 
+# 2. Lógica Robusta para la API KEY
+# Primero intentamos os.getenv, si falla, intentamos st.secrets
+api_key = os.getenv("GROQ_API_KEY")
 
 if not api_key:
     if "GROQ_API_KEY" in st.secrets:
         api_key = st.secrets["GROQ_API_KEY"]
 
-# Si después de intentar ambos sigue sin aparecer, lanzamos error claro
-if not api_key:
-    st.error("❌ ERROR: No se detecta la GROQ_API_KEY.")
-    st.info("Asegúrate de tenerla en el archivo .env (local) o en Settings > Secrets (nube).")
-    st.stop()
+# 3. Solo ahora inicializamos el cliente
+if api_key:
+    client = Groq(api_key=api_key)
+else:
+    st.error("❌ No se encontró la GROQ_API_KEY. Verifica los Secrets en Streamlit Cloud.")
+    st.stop() # Detiene la ejecución aquí si no hay llave
 
 # Inicializamos el cliente oficial de Groq
 client = Groq(api_key=api_key)
