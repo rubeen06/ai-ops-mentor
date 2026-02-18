@@ -1,15 +1,25 @@
 import streamlit as st
 import pandas as pd
 import os
-import plotly.express as px  # <-- Nueva librería para gráficos pro
+import plotly.express as px 
 from dotenv import load_dotenv
 from groq import Groq
 
 import prompts
 import utils
 
-load_dotenv()
-client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+
+api_key = os.getenv("GROQ_API_KEY") 
+
+if not api_key:
+    if "GROQ_API_KEY" in st.secrets:
+        api_key = st.secrets["GROQ_API_KEY"]
+
+if not api_key:
+    st.error("⚠️ No se encontró la API Key. Configúrala en los Secrets de Streamlit.")
+    st.stop()
+
+client = Groq(api_key=api_key)
 
 st.set_page_config(page_title="AI Ops Mentor", page_icon="📈", layout="wide")
 
