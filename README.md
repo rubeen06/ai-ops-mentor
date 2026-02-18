@@ -30,7 +30,7 @@
 
 1. **Clonar el repositorio:**
    ```bash
-   git clone [https://github.com/tu-usuario/ai-ops-mentor.git](https://github.com/tu-usuario/ai-ops-mentor.git)
+   git clone [https://github.com/rubeen06/ai-ops-mentor.git](https://github.com/rubeen06/ai-ops-mentor.git)
    cd ai-ops-mentor
 
 1. **Crear el entorno virtual**
