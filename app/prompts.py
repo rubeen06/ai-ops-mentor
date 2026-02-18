@@ -1,4 +1,3 @@
-# prompts.py
 
 SYSTEM_PROMPT = """
 Eres un Consultor Senior de Optimización de Operaciones. 

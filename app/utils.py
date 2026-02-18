@@ -22,7 +22,7 @@ def generar_resumen_estadistico(df):
     total_piezas = df['Piezas_Producidas'].sum()
     promedio_errores = df['Errores_Calidad'].mean()
     
-    # Agrupamos por empleado para ver quién destaca
+    # Agrupo por empleado para ver quién destaca
     rendimiento = df.groupby('Empleado').agg({
         'Piezas_Producidas': 'sum',
         'Errores_Calidad': 'sum'

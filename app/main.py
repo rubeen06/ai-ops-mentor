@@ -4,13 +4,11 @@ import os
 import plotly.express as px 
 from dotenv import load_dotenv
 from groq import Groq
-
-# Importamos tus módulos personalizados
 import prompts
 import utils
 
-# --- 1. GESTIÓN ROBUSTA DE LA API KEY ---
-load_dotenv()  # Carga local desde .env
+
+load_dotenv()  
 
 # Intentamos obtener la llave de todas las fuentes posibles antes de llamar a Groq
 api_key = os.getenv("GROQ_API_KEY")
@@ -19,12 +17,11 @@ if not api_key:
     if "GROQ_API_KEY" in st.secrets:
         api_key = st.secrets["GROQ_API_KEY"]
 
-# --- 2. CONFIGURACIÓN DE LA PÁGINA ---
 st.set_page_config(page_title="AI Ops Mentor", page_icon="📈", layout="wide")
 
 st.title("📈 AI Ops Mentor: Dashboard Inteligente")
 
-# --- 3. INICIALIZACIÓN DEL CLIENTE (Solo si hay llave) ---
+
 client = None
 if api_key:
     try:
@@ -32,14 +29,14 @@ if api_key:
     except Exception as e:
         st.error(f"Error al inicializar Groq: {e}")
 else:
-    st.warning("⚠️ Configuración pendiente: No se detecta la API Key de Groq.")
+    st.warning("Configuración pendiente: No se detecta la API Key de Groq.")
     st.info("Si estás en la nube, ve a 'Manage App' > 'Settings' > 'Secrets' y añade: GROQ_API_KEY = 'tu_clave'")
 
-# --- 4. CARGA DE ARCHIVOS ---
+# --- CARGA DE ARCHIVOS ---
 archivo = st.sidebar.file_uploader("Sube el reporte (CSV)", type=["csv"])
 
 if archivo:
-    # Procesamiento con tus funciones de utils
+    # Procesamiento con funciones de utils
     df = pd.read_csv(archivo)
     df = utils.limpiar_datos(df)
     
@@ -109,7 +106,7 @@ if archivo:
                 try:
                     resumen = utils.generar_resumen_estadistico(df)
                     response = client.chat.completions.create(
-                        # HEMOS ACTUALIZADO EL MODELO AQUÍ:
+                        # HE ACTUALIZADO EL MODELO AQUÍ:
                         model="llama-3.3-70b-versatile", 
                         messages=[
                             {"role": "system", "content": prompts.SYSTEM_PROMPT},
