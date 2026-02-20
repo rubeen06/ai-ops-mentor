@@ -45,11 +45,11 @@ def calcular_salud_planta(df):
     riesgo_futuro = predecir_errores(df)
     
     if score_eficiencia > 85 and num_anomalias == 0 and riesgo_futuro < 12:
-        return "🟢 SALUD ÓPTIMA", "Operación estable. Alta eficiencia y riesgo controlado.", "#d4edda"
+        return "🟢 SALUD ÓPTIMA", "Operación estable. Alta eficiencia y riesgo controlado.", "#00ff3c"
     elif num_anomalias > 1 or riesgo_futuro > 20:
-        return "🔴 RIESGO CRÍTICO", "Se detectan anomalías o alta probabilidad de fallos por fatiga.", "#f8d7da"
+        return "🔴 RIESGO CRÍTICO", "Se detectan anomalías o alta probabilidad de fallos por fatiga.", "#e9091c"
     else:
-        return "🟡 ATENCIÓN REQUERIDA", "Rendimiento moderado. Se recomienda monitoreo preventivo.", "#fff3cd"
+        return "🟡 ATENCIÓN REQUERIDA", "Rendimiento moderado. Se recomienda monitoreo preventivo.", "#ffc70e"
 
 def calcular_curva_gauss(df):
     """Genera los puntos para la campana de Gauss."""
