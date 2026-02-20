@@ -1,57 +1,75 @@
-# 📈 AI Ops Mentor: Consultoría de Operaciones con IA Generativa
+# 📈 AI Ops Mentor: Intelligent Industrial Consulting
 
 [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](TU_LINK_DE_DESPLIEGUE_AQUI)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**AI Ops Mentor** es una aplicación inteligente diseñada para optimizar la toma de decisiones en entornos industriales y de producción. Utiliza **IA Generativa (Llama 3 vía Groq)** para analizar datos de rendimiento y transformar hojas de cálculo crudas en planes de acción estratégicos.
-
-
+**AI Ops Mentor** es una solución avanzada de **Business Intelligence** y **Analítica Predictiva** diseñada para transformar datos operativos en decisiones estratégicas. Esta aplicación no solo visualiza el rendimiento, sino que utiliza **Machine Learning** y **IA Generativa (Llama 3.3)** para anticipar riesgos de fatiga y detectar anomalías estadísticas en tiempo real.
 
 ---
 
 ## 🚀 Características Principales
 
-* **Análisis Automatizado:** Carga de reportes en formato CSV con detección inteligente de métricas.
-* **Dashboard Interactivo:** Visualización en tiempo real de la relación entre producción y calidad mediante gráficos de dispersión y barras (Plotly).
-* **Ranking de Eficiencia:** Identificación automática de empleados estrella y perfiles con necesidades de mejora.
-* **Consultoría con IA:** Integración con LLMs para generar diagnósticos personalizados, detectando patrones de fatiga, fallos de maquinaria o necesidades de capacitación.
-* **Exportación de Resultados:** Descarga de los planes de acción sugeridos por la IA en formato de texto.
+### 📊 Análisis Descriptivo (El Pasado)
+* **Dashboards de Rendimiento:** Visualización de producción total y tasas de error por operario.
+* **Rankings de Eficiencia:** Algoritmo personalizado que identifica a los 5 empleados más eficientes y los 5 que requieren capacitación técnica.
+* **Control Semafórico:** Tabla de datos con formato condicional automático (Verde/Amarillo/Rojo) basado en umbrales críticos de calidad (Regla: >90 piezas = Verde | >10 errores = Rojo).
+
+### 🔮 Análisis Predictivo (El Futuro)
+* **Detección de Anomalías (Z-Score):** Identificación automática de "Outliers" o puntos críticos de error que se desvían de la norma estadística.
+* **Previsión de Fatiga (Regresión Lineal):** Modelo entrenado para predecir el incremento de errores basado en el aumento del volumen de producción.
+* **Campana de Gauss (Distribución Normal):** Visualización de la probabilidad de fallos en planta, marcando zonas de riesgo estadístico.
+
+
+### 🪄 IA Generativa & Consultoría
+* **Reportes Ejecutivos:** La IA analiza las métricas y las predicciones de ML para redactar un plan de acción profesional.
+* **Exportación PDF:** Generación instantánea de informes descargables con el diagnóstico de la IA.
+
+---
 
 ## 🛠️ Stack Tecnológico
 
-* **Frontend:** [Streamlit](https://streamlit.io/) (Interfaz de usuario rápida y reactiva).
-* **Análisis de Datos:** [Pandas](https://pandas.pydata.org/) & [NumPy](https://numpy.org/).
-* **Visualización:** [Plotly](https://plotly.com/python/).
-* **Cerebro IA:** [Groq Cloud](https://groq.com/) (Llama 3.3 70B) para inferencia de baja latencia.
-* **Entorno:** Python 3.11+, Dotenv para gestión de secretos.
+* **Interfaz:** [Streamlit](https://streamlit.io/)
+* **Machine Learning:** [Scikit-Learn](https://scikit-learn.org/) (Linear Regression) & [SciPy](https://scipy.org/) (Gaussian Stats)
+* **Visualización:** [Plotly Express](https://plotly.com/python/)
+* **Motor de IA:** [Groq Cloud](https://groq.com/) (Llama 3.3 70B)
+* **Generación de Documentos:** [FPDF2](https://github.com/fpdf2/fpdf2)
 
-## 📦 Instalación y Uso Local
+---
 
-1. **Clonar el repositorio:**
-   ```bash
-   git clone [https://github.com/rubeen06/ai-ops-mentor.git](https://github.com/rubeen06/ai-ops-mentor.git)
-   cd ai-ops-mentor
+## 📦 Instalación Local
 
-1. **Crear el entorno virtual**
-    ```bash  
+1.  **Clonar repositorio:**
+    ```bash
+    git clone [https://github.com/rubeen06/ai-ops-mentor.git](https://github.com/rubeen06/ai-ops-mentor.git)
+    cd ai-ops-mentor
+    ```
+
+2.  **Configurar entorno:**
+    ```bash
     python -m venv venv
-    ./venv/Scripts/activate
-
-2. **Instalar dependencias:**
-    ```bash
+    source venv/bin/activate  # Windows: venv\Scripts\activate
     pip install -r requirements.txt
+    ```
 
-3. **Configurar variables de entorno:**
-    ```bash 
-    GROQ_API_KEY=aqui_va_la_clave_
+3.  **Variables de Entorno:**
+    Crea un archivo `.env` en la raíz y añade tu API Key:
+    ```env
+    GROQ_API_KEY=tu_clave_aqui
+    ```
 
-4. **Lanzar la aplicación:**
+4.  **Ejecutar:**
     ```bash
-    streamlit run app/main.py    
+    streamlit run app/main.py
+    ```
 
+---
 
-**IMPACTO DEL NEGOCIO**
-Este proyecto demuestra cómo la IA Aplicada puede reducir el tiempo de supervisión manual en un 80%, permitiendo a los jefes de planta enfocarse en la ejecución de mejoras en lugar de en el análisis tedioso de datos dispersos.
+## 📈 Impacto de Negocio
+Este proyecto demuestra cómo la **IA Aplicada** puede optimizar la cadena de suministro y la gestión de talento:
+1.  **Reducción del 90%** en el tiempo de análisis manual de reportes de planta.
+2.  **Identificación proactiva** de cuellos de botella mediante modelos de regresión.
+3.  **Digitalización total** de la consultoría de operaciones.
 
-### Desarrollado por Rubén De la Nieta 
+---
+**Desarrollado por Rubén De la Nieta** 

@@ -1,39 +1,57 @@
 import pandas as pd
+import numpy as np
+from sklearn.linear_model import LinearRegression
+import scipy.stats as stats
 
 def limpiar_datos(df):
-    """
-    Limpia el DataFrame: elimina nulos y asegura formatos correctos.
-    """
-    # Eliminar filas completamente vacías
-    df = df.dropna(how='all')
-    
-    # Asegurar que las columnas numéricas sean números (por si hay texto por error)
-    cols_numericas = ['Piezas_Producidas', 'Errores_Calidad', 'Horas_Trabajadas']
-    for col in cols_numericas:
-        if col in df.columns:
-            df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
-            
+    df = df.dropna()
+    df['Piezas_Producidas'] = pd.to_numeric(df['Piezas_Producidas'], errors='coerce')
+    df['Errores_Calidad'] = pd.to_numeric(df['Errores_Calidad'], errors='coerce')
+    return df.fillna(0)
+
+def detectar_anomalias(df):
+    media = df['Errores_Calidad'].mean()
+    std = df['Errores_Calidad'].std()
+    df['Anomalia'] = df['Errores_Calidad'] > (media + 2 * std) if std > 0 else False
     return df
 
-def generar_resumen_estadistico(df):
-    """
-    Crea un resumen compacto para enviar a la IA sin gastar muchos tokens.
-    """
-    total_piezas = df['Piezas_Producidas'].sum()
-    promedio_errores = df['Errores_Calidad'].mean()
-    
-    # Agrupo por empleado para ver quién destaca
-    rendimiento = df.groupby('Empleado').agg({
-        'Piezas_Producidas': 'sum',
-        'Errores_Calidad': 'sum'
-    }).to_dict()
+def estilo_semaforo(val, tipo='produccion'):
+    if tipo == 'produccion':
+        color = 'background-color: #d4edda; color: #155724' if val >= 90 else 'background-color: #f8d7da; color: #721c24'
+    elif tipo == 'error':
+        if val > 10: color = 'background-color: #f8d7da; color: #721c24'
+        elif val == 10: color = 'background-color: #fff3cd; color: #856404'
+        else: color = 'background-color: #d4edda; color: #155724'
+    return color
 
-    resumen_texto = f"""
-    DATOS GENERALES:
-    - Total piezas: {total_piezas}
-    - Promedio errores: {promedio_errores:.2f}
+def predecir_errores(df):
+    if len(df) < 2: return 0.0
+    X = df[['Piezas_Producidas']].values
+    y = df['Errores_Calidad'].values
+    modelo = LinearRegression().fit(X, y)
+    proxima_prod = np.array([[df['Piezas_Producidas'].max() * 1.2]])
+    prediccion = modelo.predict(proxima_prod)
+    return round(float(prediccion[0]), 2)
+
+def calcular_curva_gauss(df):
+    errores = df['Errores_Calidad']
+    mu, sigma = errores.mean(), errores.std()
+    if sigma == 0: sigma = 0.1
+    x = np.linspace(mu - 4*sigma, mu + 4*sigma, 100)
+    y = stats.norm.pdf(x, mu, sigma)
+    df_gauss = pd.DataFrame({'Errores': x, 'Probabilidad': y})
+    return df_gauss, mu, sigma
+
+def generar_resumen_estadistico(df):
+    df_persona = df.groupby('Empleado').agg({'Piezas_Producidas':'sum', 'Errores_Calidad':'sum'}).reset_index()
+    df_persona['Eficiencia'] = df_persona['Piezas_Producidas'] / (df_persona['Errores_Calidad'] + 1)
     
-    DETALLE POR EMPLEADO:
-    {rendimiento}
+    top_eff = df_persona.nlargest(1, 'Eficiencia')['Empleado'].iloc[0]
+    anomalias = df[df['Anomalia'] == True]['Empleado'].unique().tolist()
+    
+    return f"""
+    - Producción Total: {df['Piezas_Producidas'].sum()}
+    - Empleado más eficiente: {top_eff}
+    - Predicción de errores (fatiga): {predecir_errores(df)}
+    - Alertas críticas detectadas en: {', '.join(anomalias) if anomalias else 'Ninguna'}
     """
-    return resumen_texto

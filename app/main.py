@@ -2,120 +2,84 @@ import streamlit as st
 import pandas as pd
 import os
 import plotly.express as px 
+import plotly.graph_objects as go
 from dotenv import load_dotenv
 from groq import Groq
+from fpdf import FPDF
 import prompts
 import utils
 
+load_dotenv()
+api_key = os.getenv("GROQ_API_KEY") or (st.secrets["GROQ_API_KEY"] if "GROQ_API_KEY" in st.secrets else None)
 
-load_dotenv()  
+st.set_page_config(page_title="AI Ops Mentor Pro", page_icon="🏭", layout="wide")
 
-# Intentamos obtener la llave de todas las fuentes posibles antes de llamar a Groq
-api_key = os.getenv("GROQ_API_KEY")
-
-if not api_key:
-    if "GROQ_API_KEY" in st.secrets:
-        api_key = st.secrets["GROQ_API_KEY"]
-
-st.set_page_config(page_title="AI Ops Mentor", page_icon="📈", layout="wide")
-
-st.title("📈 AI Ops Mentor: Dashboard Inteligente")
-
+def generar_pdf(texto_ia):
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", "B", 16)
+    pdf.cell(0, 10, "Informe Estrategico AI Ops Mentor", ln=True, align='C')
+    pdf.ln(10)
+    pdf.set_font("Arial", "", 12)
+    pdf.multi_cell(0, 10, texto_ia.encode('latin-1', 'replace').decode('latin-1'))
+    return bytes(pdf.output())
 
 client = None
-if api_key:
-    try:
-        client = Groq(api_key=api_key)
-    except Exception as e:
-        st.error(f"Error al inicializar Groq: {e}")
-else:
-    st.warning("Configuración pendiente: No se detecta la API Key de Groq.")
-    st.info("Si estás en la nube, ve a 'Manage App' > 'Settings' > 'Secrets' y añade: GROQ_API_KEY = 'tu_clave'")
+if api_key: client = Groq(api_key=api_key)
 
-# --- CARGA DE ARCHIVOS ---
-archivo = st.sidebar.file_uploader("Sube el reporte (CSV)", type=["csv"])
+st.title("🏭 AI Ops Mentor: Inteligencia Industrial")
+
+archivo = st.sidebar.file_uploader("Cargar Reporte de Planta (CSV)", type=["csv"])
 
 if archivo:
-    # Procesamiento con funciones de utils
-    df = pd.read_csv(archivo)
-    df = utils.limpiar_datos(df)
+    df = utils.limpiar_datos(pd.read_csv(archivo))
+    df = utils.detectar_anomalias(df)
     
-    # --- SECCIÓN DE GRÁFICOS ---
-    st.subheader("📊 Análisis Visual de Rendimiento")
-    col_chart1, col_chart2 = st.columns(2)
+    # Agrupación para Rankings
+    df_persona = df.groupby('Empleado').agg({'Piezas_Producidas':'sum', 'Errores_Calidad':'sum'}).reset_index()
+    df_persona['Eficiencia'] = df_persona['Piezas_Producidas'] / (df_persona['Errores_Calidad'] + 1)
 
-    with col_chart1:
-        fig_prod = px.bar(df, x='Empleado', y='Piezas_Producidas', 
-                         title="Producción Total por Empleado",
-                         color='Empleado', text_auto=True)
-        st.plotly_chart(fig_prod, use_container_width=True)
+    tab1, tab2 = st.tabs(["📊 Análisis (Histórico)", "🔮 Predictivo (Futuro)"])
 
-    with col_chart2:
-        fig_err = px.scatter(df, x='Piezas_Producidas', y='Errores_Calidad',
-                            size='Errores_Calidad', color='Empleado',
-                            title="Calidad vs Cantidad",
-                            hover_name='Empleado')
-        st.plotly_chart(fig_err, use_container_width=True)
+    with tab1:
+        st.subheader("Rankings de Desempeño")
+        c1, c2 = st.columns(2)
+        with c1:
+            st.plotly_chart(px.bar(df_persona.nlargest(5, 'Piezas_Producidas'), x='Empleado', y='Piezas_Producidas', title="Top 5: Mayor Producción", color_discrete_sequence=['#2ECC71']), use_container_width=True)
+            st.plotly_chart(px.bar(df_persona.nlargest(5, 'Eficiencia'), x='Empleado', y='Eficiencia', title="Top 5: Más Eficientes", color_discrete_sequence=['#3498DB']), use_container_width=True)
+        with c2:
+            st.plotly_chart(px.bar(df_persona.nlargest(5, 'Errores_Calidad'), x='Empleado', y='Errores_Calidad', title="Top 5: Más Errores", color_discrete_sequence=['#E74C3C']), use_container_width=True)
+            st.plotly_chart(px.bar(df_persona.nsmallest(5, 'Eficiencia'), x='Empleado', y='Eficiencia', title="Top 5: Menos Eficientes", color_discrete_sequence=['#F1C40F']), use_container_width=True)
 
-    # --- SECCIÓN DE RANKING Y EFICIENCIA ---
-    st.divider()
-    st.subheader("🏆 Cuadro de Honor y Alertas")
-    
-    df_emp = df.groupby('Empleado').agg({
-        'Piezas_Producidas': 'sum',
-        'Errores_Calidad': 'sum'
-    }).reset_index()
-    
-    # Métrica de eficiencia: piezas por cada error (+1 para evitar división por cero)
-    df_emp['Eficiencia'] = df_emp['Piezas_Producidas'] / (df_emp['Errores_Calidad'] + 1)
+        st.subheader("Monitor de Datos (Control de Calidad)")
+        st.dataframe(df.drop(columns=['Anomalia']).style.applymap(lambda x: utils.estilo_semaforo(x, 'produccion'), subset=['Piezas_Producidas']).applymap(lambda x: utils.estilo_semaforo(x, 'error'), subset=['Errores_Calidad']), use_container_width=True)
 
-    c1, c2, c3 = st.columns(3)
+    with tab2:
+        st.subheader("Probabilidad y Predicciones de Calidad")
+        
+        # --- CAMPANA DE GAUSS ---
+        df_gauss, mu, sigma = utils.calcular_curva_gauss(df)
+        fig_gauss = px.area(df_gauss, x='Errores', y='Probabilidad', title="Distribución Normal de Errores (Campana de Gauss)")
+        fig_gauss.add_vline(x=mu, line_dash="dash", line_color="black", annotation_text="Media")
+        fig_gauss.add_vrect(x0=mu + 2*sigma, x1=df_gauss['Errores'].max(), fillcolor="red", opacity=0.2, annotation_text="Zona de Anomalía")
+        st.plotly_chart(fig_gauss, use_container_width=True)
 
-    with c1:
-        st.write("**🚀 Producción**")
-        max_prod = df_emp.loc[df_emp['Piezas_Producidas'].idxmax()]
-        min_prod = df_emp.loc[df_emp['Piezas_Producidas'].idxmin()]
-        st.success(f"🥇 **Más:** {max_prod['Empleado']} ({int(max_prod['Piezas_Producidas'])} uds)")
-        st.error(f"🥉 **Menos:** {min_prod['Empleado']} ({int(min_prod['Piezas_Producidas'])} uds)")
 
-    with c2:
-        st.write("**🛡️ Calidad (Errores)**")
-        max_err = df_emp.loc[df_emp['Errores_Calidad'].idxmax()]
-        min_err = df_emp.loc[df_emp['Errores_Calidad'].idxmin()]
-        st.error(f"⚠️ **Más:** {max_err['Empleado']} ({int(max_err['Errores_Calidad'])} err)")
-        st.success(f"✅ **Menos:** {min_err['Empleado']} ({int(min_err['Errores_Calidad'])} err)")
+        col_ml1, col_ml2 = st.columns(2)
+        with col_ml1:
+            st.metric("Predicción Errores (Carga +20%)", f"{utils.predecir_errores(df)} uds")
+            st.write("💡 *La regresión lineal estima el impacto de la fatiga operativa.*")
+        with col_ml2:
+            st.plotly_chart(px.scatter(df, x='Piezas_Producidas', y='Errores_Calidad', color='Anomalia', title="Detección de Outliers", color_discrete_map={True:'red', False:'blue'}), use_container_width=True)
 
-    with c3:
-        st.write("**✨ Eficiencia General**")
-        best_eff = df_emp.loc[df_emp['Eficiencia'].idxmax()]
-        worst_eff = df_emp.loc[df_emp['Eficiencia'].idxmin()]
-        st.info(f"🏆 **Mejor:** {best_eff['Empleado']}")
-        st.warning(f"📉 **Peor:** {worst_eff['Empleado']}")    
-
-    # --- TABLA DE DATOS ---
-    with st.expander("Ver datos detallados"):
-        st.dataframe(df, use_container_width=True)
-
-    # --- BOTÓN DE IA ---
-    st.divider()
-    if st.button("🪄 Generar Consultoría Estratégica"):
-        if client is None:
-            st.error("No se puede generar el informe sin una API Key válida.")
-        else:
-            with st.spinner("La IA está analizando los gráficos y datos..."):
-                try:
-                    resumen = utils.generar_resumen_estadistico(df)
-                    response = client.chat.completions.create(
-                        # HE ACTUALIZADO EL MODELO AQUÍ:
-                        model="llama-3.3-70b-versatile", 
-                        messages=[
-                            {"role": "system", "content": prompts.SYSTEM_PROMPT},
-                            {"role": "user", "content": prompts.generar_prompt_analisis(resumen)}
-                        ]
-                    )
-                    st.success("### 💡 Diagnóstico de la IA")
-                    st.markdown(response.choices[0].message.content)
-                except Exception as e:
-                    st.error(f"Error al conectar con la IA: {e}")
+    # --- CONSULTORÍA IA ---
+    if st.button("🪄 Generar Consultoría IA"):
+        if client:
+            with st.spinner("IA analizando la distribución y tendencias..."):
+                resumen = utils.generar_resumen_estadistico(df)
+                response = client.chat.completions.create(model="llama-3.3-70b-versatile", messages=[{"role": "system", "content": prompts.SYSTEM_PROMPT}, {"role": "user", "content": prompts.generar_prompt_analisis(resumen)}])
+                st.session_state.informe_ia = response.choices[0].message.content
+                st.info(st.session_state.informe_ia)
+                st.download_button("📥 Descargar Reporte PDF", data=generar_pdf(st.session_state.informe_ia), file_name="analisis_ia.pdf")
 else:
-    st.info("Bienvenido. Por favor, sube un archivo CSV para comenzar el análisis.")
+    st.info("Sube un CSV para activar el motor de IA y Estadística.")

@@ -3,3 +3,6 @@ groq
 pandas
 python-dotenv
 plotly
+fpdf2
+scikit-learn
+scipy
