@@ -20,10 +20,10 @@ def detectar_anomalias(df):
 def estilo_semaforo(val, tipo='produccion'):
     """Formato condicional para la tabla de datos."""
     if tipo == 'produccion':
-        color = 'background-color: #d4edda; color: #155724' if val >= 90 else 'background-color: #f8d7da; color: #721c24'
+        color = 'background-color: #00ff3c; color: #155724' if val >= 90 else 'background-color: #f8d7da; color: #721c24'
     elif tipo == 'error':
-        if val > 10: color = 'background-color: #f8d7da; color: #721c24'
-        elif val == 10: color = 'background-color: #fff3cd; color: #856404'
+        if val > 10: color = 'background-color: #e9091c; color: #721c24'
+        elif val == 10: color = 'background-color: #ffc70e; color: #856404'
         else: color = 'background-color: #d4edda; color: #155724'
     return color
 
